@@ -49,13 +49,16 @@ RUN apt-get install -y ros-foxy-tf2 ros-foxy-cv-bridge ros-foxy-pcl-conversions 
     ros-foxy-rviz2 ros-foxy-image-transport ros-foxy-image-transport-plugins ros-foxy-pcl-ros
 
 # GTSAM
-RUN mkdir -p ~/thirdParty/gtsam && \
+# RUN mkdir -p ~/thirdParty/gtsam && \
     cd ~/thirdParty/gtsam && \
     git clone https://github.com/borglab/gtsam.git . && \
     mkdir -p build && \
     cd build && \
     cmake .. && \
     make install -j8
+RUN add-apt-repository ppa:borglab/gtsam-release-4.0 -y
+RUN apt update
+RUN apt install libgtsam-dev libgtsam-unstable-dev -y
 
 COPY ./entrypoint.sh /
 RUN chmod 755 /entrypoint.sh
