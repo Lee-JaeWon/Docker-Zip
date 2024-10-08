@@ -48,12 +48,14 @@ RUN apt-get update && apt-get install -y cmake libatlas-base-dev libeigen3-dev l
 RUN apt-get install -y ros-foxy-tf2 ros-foxy-cv-bridge ros-foxy-pcl-conversions ros-foxy-xacro ros-foxy-robot-state-publisher \
     ros-foxy-rviz2 ros-foxy-image-transport ros-foxy-image-transport-plugins ros-foxy-pcl-ros
 
-RUN mkdir -p ~/thirdParty && cd ~/thirdParty
-RUN git clone https://github.com/borglab/gtsam.git
-RUN cd gtsam
-RUN mkdir -p build && cd build
-RUN cmake ..
-RUN make install -j8
+# GTSAM
+RUN mkdir -p ~/thirdParty/gtsam && \
+    cd ~/thirdParty/gtsam && \
+    git clone https://github.com/borglab/gtsam.git . && \
+    mkdir -p build && \
+    cd build && \
+    cmake .. && \
+    make install -j8
 
 COPY ./entrypoint.sh /
 RUN chmod 755 /entrypoint.sh

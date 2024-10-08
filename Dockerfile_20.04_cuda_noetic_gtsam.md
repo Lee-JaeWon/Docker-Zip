@@ -28,12 +28,13 @@ RUN apt-get update
 RUN apt install ros-noetic-desktop-full -y
 
 # GTSAM
-RUN mkdir -p ~/thirdParty && cd ~/thirdParty
-RUN git clone https://github.com/borglab/gtsam.git
-RUN cd gtsam
-RUN mkdir -p build && cd build
-RUN cmake ..
-RUN make install -j8
+RUN mkdir -p ~/thirdParty/gtsam && \
+    cd ~/thirdParty/gtsam && \
+    git clone https://github.com/borglab/gtsam.git . && \
+    mkdir -p build && \
+    cd build && \
+    cmake .. && \
+    make install -j8
 
 COPY ./entrypoint.sh /
 RUN chmod 755 /entrypoint.sh
