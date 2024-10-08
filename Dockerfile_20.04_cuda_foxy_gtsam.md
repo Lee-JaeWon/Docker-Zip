@@ -1,0 +1,62 @@
+# Use the base image with PyTorch and CUDA support
+FROM pytorch/pytorch:2.0.1-cuda11.7-cudnn8-devel
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# tzdata
+RUN apt-get update && \
+    apt-get install -y tzdata && \
+    ln -sf /usr/share/zoneinfo/Asia/Seoul /etc/localtime && \
+    echo "Asia/Seoul" > /etc/timezone && \
+    apt-get clean
+
+RUN apt-get install -y git unzip wget
+RUN apt-get install -y libeigen3-dev freeglut3-dev libsm6 libxext6 libxrender-dev libgl1-mesa-glx libglib2.0-0
+
+# Update and install necessary tools
+RUN apt-get update && apt-get install -y \
+    locales \
+    curl \
+    gnupg2 \
+    lsb-release \
+    build-essential
+
+# Set the locale
+RUN locale-gen en_US en_US.UTF-8 && \
+    update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 && \
+    export LANG=en_US.UTF-8
+
+# Add ROS 2 apt repository
+RUN apt install software-properties-common -y
+RUN add-apt-repository universe -y
+RUN apt update && apt install curl -y
+RUN curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
+RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | tee /etc/apt/sources.list.d/ros2.list > /dev/null
+
+
+# Install ROS 2 Foxy
+RUN apt-get update
+RUN apt-get upgrade -y
+RUN apt-get update && apt-get install -y \
+    ros-foxy-desktop
+RUN apt-get install -y python3-argcomplete ros-dev-tools
+
+RUN echo "source /opt/ros/foxy/setup.bash" >> ~/.bashrc
+
+# Install PCL & Eigen & essential libraries
+RUN apt-get update && apt-get install -y cmake libatlas-base-dev libeigen3-dev libpcl-dev libgoogle-glog-dev libsuitesparse-dev libglew-dev wget unzip git python3-pip
+RUN apt-get install -y ros-foxy-tf2 ros-foxy-cv-bridge ros-foxy-pcl-conversions ros-foxy-xacro ros-foxy-robot-state-publisher \
+    ros-foxy-rviz2 ros-foxy-image-transport ros-foxy-image-transport-plugins ros-foxy-pcl-ros
+
+RUN mkdir -p ~/thirdParty && cd ~/thirdParty
+RUN git clone https://github.com/borglab/gtsam.git
+RUN cd gtsam
+RUN mkdir -p build && cd build
+RUN cmake ..
+RUN make install -j8
+
+COPY ./entrypoint.sh /
+RUN chmod 755 /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
+
+CMD ["bash"]
